@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SBAR Brew â AccuFlip RN</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --espresso:#120800;
+  --roast:#1E0C00;
+  --dark:#2A1200;
+  --caramel:#C47B2B;
+  --gold:#E8A83E;
+  --cream:#F5EDD6;
+  --steam:#D4C5A9;
+  --muted:#7A5C3A;
+  --border:#3D1A00;
+  --radius:12px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--espresso);color:var(--cream);min-height:100vh;}
+
+nav{
+  background:var(--roast);border-bottom:1px solid var(--border);
+  padding:0 2rem;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:10;
+}
+.nav-logo{font-family:'Playfair Display',serif;font-size:22px;color:var(--caramel);}
+.nav-logo span{font-style:italic;color:var(--cream);}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.clock{font-size:13px;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:6px;letter-spacing:0.04em;}
+.btn-ghost{padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:none;font-size:13px;color:var(--steam);cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;display:inline-flex;align-items:center;}
+.btn-primary{padding:7px 16px;border-radius:8px;border:none;background:var(--caramel);color:var(--espresso);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;display:inline-flex;align-items:center;}
+.btn-xl{padding:14px 36px;font-size:16px;border-radius:10px;}
+.btn-lg{padding:12px 28px;font-size:15px;border-radius:10px;}
+
+/* Hero */
+.hero{max-width:680px;margin:0 auto;padding:5rem 2rem 4rem;text-align:center;}
+.hero-eyebrow{font-size:12px;color:var(--caramel);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:2rem;}
+
+/* SBAR block */
+.sbar-block{
+  background:var(--roast);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1.5rem 2rem;
+  margin-bottom:2.5rem;text-align:left;
+  display:inline-block;min-width:320px;
+}
+.sbar-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);}
+.sbar-row:last-child{border-bottom:none;}
+.sbar-letter{font-family:'Playfair Display',serif;font-size:18px;color:var(--caramel);width:20px;flex-shrink:0;}
+.sbar-label{font-size:12px;color:var(--muted);font-weight:500;width:120px;flex-shrink:0;}
+.sbar-value{font-size:15px;color:var(--cream);}
+
+.hero-sub{font-size:17px;color:var(--steam);line-height:1.7;max-width:520px;margin:0 auto 2.5rem;font-weight:300;}
+.hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:1rem;}
+.hero-note{font-size:12px;color:var(--muted);}
+
+/* Subjects strip */
+.subjects-strip{
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:var(--roast);padding:1rem 2rem;
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;
+}
+.subj-pill{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;}
+.coming-soon{font-size:12px;color:var(--muted);font-style:italic;}
+
+/* Features */
+.features{max-width:900px;margin:0 auto;padding:4rem 2rem;}
+.section-title{font-family:'Playfair Display',serif;font-size:34px;color:var(--cream);text-align:center;margin-bottom:0.5rem;}
+.section-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:2.5rem;}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+.feature-card{background:var(--dark);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
+.feature-icon{width:36px;height:36px;border-radius:8px;background:var(--roast);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:16px;color:var(--caramel);}
+.feature-title{font-size:15px;font-weight:500;color:var(--cream);margin-bottom:6px;}
+.feature-text{font-size:13px;color:var(--muted);line-height:1.65;}
+
+/* Pricing */
+.pricing{max-width:900px;margin:0 auto;padding:0 2rem 5rem;}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+.price-card{background:var(--dark);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;display:flex;flex-direction:column;}
+.price-card.featured{border-color:var(--caramel);border-width:2px;}
+.price-badge{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500;width:fit-content;margin-bottom:10px;background:var(--roast);color:var(--caramel);}
+.price-name{font-size:15px;font-weight:500;color:var(--cream);margin-bottom:2px;}
+.price-includes{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;}
+.price-amount{font-size:28px;font-weight:500;color:var(--gold);}
+.price-term{font-size:11px;color:var(--muted);margin-bottom:10px;}
+.price-divider{height:1px;background:var(--border);margin-bottom:10px;}
+.price-feature{font-size:12px;color:var(--muted);padding:3px 0;display:flex;gap:6px;}
+.price-feature span:first-child{color:var(--caramel);flex-shrink:0;}
+.coffee-pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 10px;border-radius:20px;background:#1A3A1A;color:#6EE7B7;font-weight:500;margin-top:8px;}
+.price-cta{margin-top:auto;padding-top:1rem;}
+.price-btn{width:100%;padding:9px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;border:1px solid var(--border);background:none;color:var(--steam);}
+.price-btn.primary{background:var(--caramel);color:var(--espresso);border:none;}
+
+/* Cup divider */
+.cup-divider{display:flex;align-items:center;justify-content:center;gap:1rem;padding:1.5rem 0;}
+.cup-line{flex:1;max-width:200px;height:1px;background:var(--border);}
+
+footer{border-top:1px solid var(--border);background:var(--roast);padding:2rem;text-align:center;font-size:11px;color:var(--muted);line-height:1.9;}
+footer a{color:var(--muted);}
+.footer-sbar{font-style:italic;color:var(--caramel);font-size:13px;margin-bottom:0.5rem;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">SBAR <span>Brew</span></div>
+  <div class="nav-right">
+    <div class="clock" id="live-clock">2:47 AM</div>
+    <a href="login.html" class="btn-ghost">Sign in</a>
+    <a href="login.html" class="btn-primary">Start free trial</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">AccuFlip RN Â· sbarbrew.com</div>
+
+  <div class="sbar-block">
+    <div class="sbar-row">
+      <span class="sbar-letter">S</span>
+      <span class="sbar-label">Situation</span>
+      <span class="sbar-value">Coffee</span>
+    </div>
+    <div class="sbar-row">
+      <span class="sbar-letter">B</span>
+      <span class="sbar-label">Background</span>
+      <span class="sbar-value">Nursing school</span>
+    </div>
+    <div class="sbar-row">
+      <span class="sbar-letter">A</span>
+      <span class="sbar-label">Assessment</span>
+      <span class="sbar-value">Exhausted</span>
+    </div>
+    <div class="sbar-row">
+      <span class="sbar-letter">R</span>
+      <span class="sbar-label">Recommendation</span>
+      <span class="sbar-value">SBAR Brew</span>
+    </div>
+  </div>
+
+  <p class="hero-sub">
+    The nursing study platform that understands your situation. Pre-nursing through boards â anatomy, pharmacology, lab values, theory, and more. Free trial. No credit card.
+  </p>
+  <div class="hero-ctas">
+    <a href="login.html" class="btn-primary btn-xl">Start free trial</a>
+    <a href="#pricing" class="btn-ghost btn-lg">See pricing</a>
+  </div>
+  <div class="hero-note">3 cards free in every subject â no card required</div>
+</section>
+
+<div class="subjects-strip">
+  <span class="subj-pill" style="background:#FEE2E2;color:#991B1B;">Pharmacology</span>
+  <span class="subj-pill" style="background:#EAF3DE;color:#3B6D11;opacity:0.6;">Anatomy</span>
+  <span class="subj-pill" style="background:#DBEAFE;color:#1E40AF;opacity:0.6;">Physiology</span>
+  <span class="subj-pill" style="background:#FEF3C7;color:#92400E;opacity:0.6;">Med Terminology</span>
+  <span class="subj-pill" style="background:#D1FAE5;color:#065F46;opacity:0.6;">Lab Values</span>
+  <span class="subj-pill" style="background:#EDE9FE;color:#5B21B6;opacity:0.6;">Nursing Theory</span>
+  <span class="coming-soon">5 more subjects coming soon</span>
+</div>
+
+<section class="features">
+  <h2 class="section-title">Built for the 2am shift</h2>
+  <p class="section-sub">Not a textbook. Not a PDF. Something that actually works the way your brain does at midnight.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">ââ</div>
+      <div class="feature-title">Clinical language only</div>
+      <div class="feature-text">Every card explains what the drug or concept does â up or down â in plain nurse language. No receptor jargon. No textbook walls.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">?</div>
+      <div class="feature-title">NCLEX-style quiz mode</div>
+      <div class="feature-text">Your patient's HR is 54. What do you do? Real clinical scenarios, not "name the receptor subtype."</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">!</div>
+      <div class="feature-title">Hold parameters on every card</div>
+      <div class="feature-text">Hold if HR under 60. Stop if throat swelling. The exact bedside decision points, not buried in a paragraph.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">â</div>
+      <div class="feature-title">Coffee included</div>
+      <div class="feature-text">Core nursing and all-access orders come with a Starbucks gift card. Because you brought the 2am. We brought the latte.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">â</div>
+      <div class="feature-title">One price. Forever.</div>
+      <div class="feature-text">No subscription. No monthly charge. Pay once, own it forever â including every card we add to your subjects.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">â</div>
+      <div class="feature-title">Pre-nursing to boards</div>
+      <div class="feature-text">Start with med terms and A&P before you even apply. Graduate to pharmacology and lab values. One platform, the whole journey.</div>
+    </div>
+  </div>
+</section>
+
+<div class="cup-divider">
+  <div class="cup-line"></div>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path d="M7 8h10l-1 9H8L7 8z" fill="#2A1200" stroke="#C47B2B" stroke-width="1.5"/>
+    <path d="M5 8h14" stroke="#C47B2B" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M17 10c2 0 3 1 3 2.5S18 15 17 15" stroke="#C47B2B" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  </svg>
+  <div class="cup-line"></div>
+</div>
+
+<section class="pricing" id="pricing">
+  <h2 class="section-title" style="margin-bottom:0.5rem;">One price. No subscription.</h2>
+  <p class="section-sub" style="margin-bottom:2rem;">Less than one Starbucks run. Although the all-access comes with one.</p>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-badge">Single subject</div>
+      <div class="price-name">One subject</div>
+      <div class="price-includes">Any 1 of 6</div>
+      <div class="price-amount">$7.99</div>
+      <div class="price-term">one-time Â· lifetime</div>
+      <div class="price-divider"></div>
+      <div class="price-feature"><span>+</span><span>1 subject, all cards</span></div>
+      <div class="price-feature"><span>+</span><span>Flip + quiz mode</span></div>
+      <div class="price-feature"><span>+</span><span>Updates forever</span></div>
+      <div class="price-cta"><button class="price-btn" onclick="alert('Payment setup coming soon!')">Start free trial</button></div>
+    </div>
+    <div class="price-card">
+      <div class="price-badge">Study bundle</div>
+      <div class="price-name">3 subjects</div>
+      <div class="price-includes">Any 3 of 6</div>
+      <div class="price-amount">$17.99</div>
+      <div class="price-term">one-time Â· lifetime</div>
+      <div class="price-divider"></div>
+      <div class="price-feature"><span>+</span><span>3 subjects, all cards</span></div>
+      <div class="price-feature"><span>+</span><span>Progress tracking</span></div>
+      <div class="price-feature"><span>+</span><span>Updates forever</span></div>
+      <div class="price-cta"><button class="price-btn" onclick="alert('Payment setup coming soon!')">Start free trial</button></div>
+    </div>
+    <div class="price-card featured">
+      <div class="price-badge" style="background:var(--caramel);color:var(--espresso);">Most popular</div>
+      <div class="price-name">Core nursing</div>
+      <div class="price-includes">Anatomy + Physiology + Pharmacology + Lab Values</div>
+      <div class="price-amount">$24.99</div>
+      <div class="price-term">one-time Â· lifetime</div>
+      <div class="price-divider"></div>
+      <div class="price-feature"><span>+</span><span>4 core nursing subjects</span></div>
+      <div class="price-feature"><span>+</span><span>Progress tracking</span></div>
+      <div class="price-feature"><span>+</span><span>Updates forever</span></div>
+      <div class="coffee-pill">Tall latte on us</div>
+      <div class="price-cta"><button class="price-btn primary" onclick="alert('Payment setup coming soon!')">Start free trial</button></div>
+    </div>
+    <div class="price-card">
+      <div class="price-badge" style="background:#1A3A1A;color:#6EE7B7;">Best value</div>
+      <div class="price-name">All access</div>
+      <div class="price-includes">All 6 subjects + every card added forever</div>
+      <div class="price-amount">$34.99</div>
+      <div class="price-term">one-time Â· lifetime</div>
+      <div class="price-divider"></div>
+      <div class="price-feature"><span>+</span><span>All 6 subjects</span></div>
+      <div class="price-feature"><span>+</span><span>Every new subject added</span></div>
+      <div class="price-feature"><span>+</span><span>NCLEX high-yield set</span></div>
+      <div class="coffee-pill">Grande on us</div>
+      <div class="price-cta"><button class="price-btn" onclick="alert('Payment setup coming soon!')">Start free trial</button></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-sbar">S: Coffee Â· B: School Â· A: Exhausted Â· R: SBAR Brew</div>
+  SBAR Brew Â· AccuFlip RN Â· AccuFlip Digital Solutions LLC Â· Tulsa, Oklahoma<br>
+  Content sourced from FDA DailyMed (dailymed.nlm.nih.gov) Â· OpenStax A&P 2e (openstax.org, CC BY 4.0) Â· NLM MedlinePlus (medlineplus.gov)<br>
+  For educational use only. Always verify independently before clinical application.<br>
+  <a href="terms.html">Terms of Use</a> Â· <a href="login.html">Sign in</a> Â· <a href="accuflipdigital.com">AccuFlip Digital</a>
+</footer>
+
+<script src="js/supabase-client.js"></script>
+<script>
+function updateClock(){
+  const now=new Date()
+  let h=now.getHours(),m=now.getMinutes(),s=now.getSeconds()
+  const ap=h>=12?'PM':'AM'; h=h%12||12
+  document.getElementById('live-clock').textContent=
+    `${h}:${String(m).padStart(2,'0')} ${ap}`
+}
+updateClock(); setInterval(updateClock,1000)
+
+getUser().then(user=>{
+  if(user){
+    document.querySelectorAll('a[href="login.html"]').forEach(a=>{
+      if(a.textContent.includes('trial')||a.textContent.includes('Sign in'))
+        a.href='dashboard.html'
+    })
+  }
+})
+</script>
+</body>
+</html>
