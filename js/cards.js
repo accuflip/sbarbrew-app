@@ -1,5 +1,5 @@
 // ============================================================
-// SBAR Brew â Card Engine
+// SBAR Brew - Card Engine
 // js/cards.js
 // Mobile-first: swipe gestures, landscape mode, randomization
 // ============================================================
@@ -21,9 +21,9 @@ let S = {
   touchStartTime: 0
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Init
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 async function initStudy(subjectId, userId, hasAccess) {
   S.subjectId = subjectId
@@ -48,9 +48,9 @@ async function initStudy(subjectId, userId, hasAccess) {
   renderCard()
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Randomization
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function toggleRandomize() {
   S.randomized = !S.randomized
@@ -82,9 +82,9 @@ function currentCard() {
   return S.shuffled[S.idx]
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Render
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function renderCard() {
   const card = currentCard()
@@ -122,7 +122,7 @@ function renderCard() {
           background:${e.dir === 'up' ? '#D1FAE520' : '#FEE2E220'};
           border:0.5px solid ${e.dir === 'up' ? '#6EE7B7' : '#FCA5A5'};margin-bottom:6px;">
           <span style="font-size:18px;font-weight:500;width:20px;text-align:center;
-            color:${e.dir === 'up' ? '#6EE7B7' : '#FCA5A5'}">${e.dir === 'up' ? 'â' : 'â'}</span>
+            color:${e.dir === 'up' ? '#6EE7B7' : '#FCA5A5'}">${e.dir === 'up' ? '&uarr;' : '&darr;'}</span>
           <span style="font-size:14px;color:#F5EDD6;">${e.text}</span>
         </div>`).join('')
     } else if (card.card_type === 'terminology') {
@@ -135,7 +135,7 @@ function renderCard() {
     }
   }
 
-  // Back of card â adapts to card type
+  // Back of card - adapts to card type
   if (card.card_type === 'terminology') {
     setEl('b-does', card.definition || '')
     setEl('b-why', card.example || '')
@@ -185,9 +185,9 @@ function renderCard() {
   if (S.mode === 'quiz') renderQuiz(card)
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Flip
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function flipCard() {
   if (S.mode !== 'flip') return
@@ -195,9 +195,9 @@ function flipCard() {
   document.getElementById('card-inner')?.classList.toggle('flipped', S.flipped)
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Navigate
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function navigate(dir) {
   const next = S.idx + dir
@@ -217,9 +217,9 @@ function markCard(knew) {
   navigate(1)
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Swipe gestures (mobile)
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function setupSwipe() {
   const el = document.getElementById('card-wrap')
@@ -254,9 +254,9 @@ function setupSwipe() {
   }, { passive: true })
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Keyboard navigation
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function setupKeyboard() {
   document.addEventListener('keydown', e => {
@@ -270,9 +270,9 @@ function setupKeyboard() {
   })
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Orientation handler (landscape)
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function setupOrientationHandler() {
   const updateOrientation = () => {
@@ -281,7 +281,7 @@ function setupOrientationHandler() {
     const main = document.getElementById('main-content')
 
     if (isLandscape && window.innerWidth < 900) {
-      // Mobile landscape â larger card, hide some chrome
+      // Mobile landscape - larger card, hide some chrome
       if (cardWrap) cardWrap.style.height = '260px'
       if (main) main.style.padding = '0.75rem'
       document.getElementById('mode-tabs')?.style.setProperty('margin-bottom', '0.75rem')
@@ -299,9 +299,9 @@ function setupOrientationHandler() {
   updateOrientation()
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Quiz mode
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function renderQuiz(card) {
   S.quizAnswered = false
@@ -311,7 +311,7 @@ function renderQuiz(card) {
   const qEl = document.getElementById('q-question')
   const fb = document.getElementById('q-feedback')
 
-  if (drugEl) drugEl.textContent = card.title + (card.subtitle ? ` â ${card.subtitle}` : '')
+  if (drugEl) drugEl.textContent = card.title + (card.subtitle ? ` - ${card.subtitle}` : '')
   if (qEl) qEl.textContent = isTerminology
     ? `What does "${card.title}" mean?`
     : `What does ${card.title} primarily do to the body?`
@@ -382,9 +382,9 @@ function checkAnswer(btn, isCorrect, hint) {
   }, 1800)
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Mode switch
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function setMode(mode) {
   S.mode = mode
@@ -404,9 +404,9 @@ function setMode(mode) {
   renderCard()
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Upgrade prompt
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function showUpgrade() {
   const el = document.getElementById('upgrade-overlay')
@@ -418,9 +418,9 @@ function hideUpgrade() {
   if (el) el.style.display = 'none'
 }
 
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 // Helpers
-// âââââââââââââââââââââââââââââââââââââââââ
+// -----------------------------------------
 
 function setEl(id, text) {
   const el = document.getElementById(id)
