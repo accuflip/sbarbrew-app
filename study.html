@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SBAR Brew â Study</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --espresso:#120800;--roast:#1E0C00;--dark:#2A1200;
+  --caramel:#C47B2B;--gold:#E8A83E;--cream:#F5EDD6;
+  --steam:#D4C5A9;--muted:#7A5C3A;--border:#3D1A00;
+  --success-bg:#064E3B;--danger-bg:#450A0A;--radius:12px;
+}
+html,body{height:100%;overflow-x:hidden;}
+body{font-family:'DM Sans',sans-serif;background:var(--espresso);color:var(--cream);}
+
+/* ââ Header âââââââââââââââââââââââââââââââ */
+header{
+  background:var(--roast);border-bottom:1px solid var(--border);
+  padding:0 1rem;height:48px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:20;
+}
+.back-link{font-size:13px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:4px;padding:8px 0;}
+.back-link:active{color:var(--cream);}
+.logo{font-family:'Playfair Display',serif;font-size:16px;color:var(--caramel);}
+.score-chip{font-size:11px;padding:3px 8px;border-radius:20px;background:var(--success-bg);color:#6EE7B7;font-weight:500;white-space:nowrap;}
+
+/* ââ Main âââââââââââââââââââââââââââââââââ */
+main{
+  max-width:640px;margin:0 auto;
+  padding:1rem;
+  min-height:calc(100vh - 48px);
+}
+
+/* ââ Controls row âââââââââââââââââââââââââ */
+.controls-row{display:flex;align-items:center;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
+.subj-label{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;}
+.mode-tab{
+  padding:5px 12px;border-radius:8px;
+  border:1px solid var(--border);background:transparent;
+  font-size:12px;color:var(--muted);cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:all 0.15s;
+  -webkit-user-select:none;
+}
+.mode-tab.active{background:var(--dark);color:var(--cream);border-color:var(--caramel);font-weight:500;}
+.mode-tab:active{opacity:0.8;}
+#randomize-btn{
+  margin-left:auto;
+  padding:5px 12px;border-radius:8px;
+  border:1px solid var(--border);background:transparent;
+  font-size:12px;color:var(--muted);cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  -webkit-user-select:none;
+}
+#randomize-btn:active{opacity:0.8;}
+
+/* ââ Progress âââââââââââââââââââââââââââââ */
+.prog-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:0.75rem;overflow:hidden;}
+.prog-fill{height:100%;background:var(--caramel);border-radius:2px;transition:width 0.3s;}
+
+/* ââ Nav row âââââââââââââââââââââââââââââââ */
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
+.nav-btn{
+  padding:8px 18px;border-radius:8px;
+  border:1px solid var(--border);background:var(--dark);
+  color:var(--cream);font-size:14px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  min-width:80px;text-align:center;
+  -webkit-user-select:none;
+  touch-action:manipulation;
+}
+.nav-btn:active:not(:disabled){background:var(--roast);}
+.nav-btn:disabled{opacity:0.35;cursor:default;}
+.card-counter{font-size:13px;color:var(--muted);}
+
+/* ââ Flip card ââââââââââââââââââââââââââââ */
+#card-wrap{
+  perspective:1200px;
+  height:360px;
+  cursor:pointer;
+  margin-bottom:0.75rem;
+  -webkit-user-select:none;
+  user-select:none;
+  touch-action:pan-y;
+}
+.card-inner{
+  position:relative;width:100%;height:100%;
+  transform-style:preserve-3d;
+  transition:transform 0.4s ease;
+  will-change:transform;
+}
+.card-inner.flipped{transform:rotateY(180deg);}
+.card-face{
+  position:absolute;width:100%;height:100%;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  background:var(--dark);
+  padding:1.25rem;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.card-back{transform:rotateY(180deg);}
+.card-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(22px,5vw,34px);
+  color:var(--cream);margin-bottom:4px;
+  line-height:1.2;
+}
+.card-subtitle{font-size:13px;color:var(--muted);margin-bottom:1rem;}
+.card-hint{font-size:12px;color:var(--muted);margin-top:auto;display:flex;align-items:center;gap:6px;}
+.swipe-hint{font-size:11px;color:var(--border);margin-top:4px;}
+
+/* Back grid â adapts for landscape */
+.back-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;flex:1;overflow:hidden;
+}
+.back-cell{background:var(--roast);border-radius:8px;padding:8px 10px;overflow:hidden;}
+.back-cell.full{grid-column:1/-1;}
+.cell-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:3px;}
+.cell-value{font-size:clamp(11px,2.5vw,13px);color:var(--cream);line-height:1.45;}
+
+/* ââ Know it / Still learning âââââââââââââ */
+.know-row{display:flex;gap:8px;justify-content:center;margin-bottom:0.75rem;}
+.know-btn{
+  flex:1;max-width:160px;padding:10px;
+  border-radius:8px;border:1px solid var(--border);
+  background:var(--dark);font-size:13px;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  color:var(--steam);text-align:center;
+  touch-action:manipulation;-webkit-user-select:none;
+}
+.know-btn.green{color:#6EE7B7;border-color:var(--success-bg);}
+.know-btn:active{opacity:0.8;}
+
+/* ââ Quiz mode ââââââââââââââââââââââââââââ */
+.quiz-card{
+  background:var(--dark);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1.25rem;margin-bottom:0.75rem;
+}
+.quiz-drug{font-size:12px;color:var(--muted);margin-bottom:4px;}
+.quiz-q{font-size:15px;font-weight:500;color:var(--cream);line-height:1.5;margin-bottom:1rem;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{
+  padding:10px 14px;border-radius:8px;
+  border:1px solid var(--border);background:var(--roast);
+  font-size:13px;color:var(--cream);
+  cursor:pointer;text-align:left;line-height:1.5;
+  font-family:'DM Sans',sans-serif;
+  touch-action:manipulation;-webkit-user-select:none;
+}
+.quiz-opt:active:not(:disabled){opacity:0.8;}
+.quiz-opt.correct{background:var(--success-bg);color:#6EE7B7;border-color:var(--success-bg);}
+.quiz-opt.wrong{background:var(--danger-bg);color:#FCA5A5;border-color:var(--danger-bg);}
+
+/* ââ Upgrade overlay âââââââââââââââââââââââ */
+.upgrade-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.85);z-index:100;
+  align-items:center;justify-content:center;
+  padding:1rem;
+}
+.upgrade-modal{
+  background:var(--dark);border:1px solid var(--caramel);
+  border-radius:var(--radius);padding:1.75rem;
+  max-width:360px;width:100%;text-align:center;
+}
+.upgrade-modal h2{font-family:'Playfair Display',serif;font-size:22px;color:var(--cream);margin-bottom:8px;}
+.upgrade-modal p{font-size:13px;color:var(--muted);margin-bottom:1.25rem;line-height:1.6;}
+.upgrade-sbar{background:var(--roast);border-radius:8px;padding:1rem;margin-bottom:1.25rem;text-align:left;border:1px solid var(--border);}
+.upgrade-sbar-row{font-size:13px;color:var(--steam);padding:3px 0;}
+.upgrade-sbar-row span:first-child{color:var(--caramel);font-weight:500;margin-right:8px;}
+.upgrade-cta{width:100%;padding:12px;background:var(--caramel);color:var(--espresso);border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:10px;touch-action:manipulation;}
+.upgrade-cta:active{opacity:0.9;}
+.upgrade-dismiss{background:none;border:none;font-size:13px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* ââ Disclaimer âââââââââââââââââââââââââââ */
+.disclaimer{font-size:10px;color:var(--muted);text-align:center;margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border);line-height:1.6;}
+
+/* ââ LANDSCAPE mobile optimizations ââââââââ */
+@media (max-height: 500px) and (orientation: landscape) {
+  header{height:40px;}
+  main{padding:0.5rem;}
+  #card-wrap{height:200px;}
+  .controls-row{margin-bottom:0.5rem;}
+  .prog-bar{margin-bottom:0.5rem;}
+  .nav-row{margin-bottom:0.5rem;}
+  .card-face{padding:0.75rem;}
+  .card-title{font-size:18px;margin-bottom:2px;}
+  .card-subtitle{margin-bottom:0.5rem;}
+  .back-grid{gap:5px;}
+  .back-cell{padding:6px 8px;}
+  .cell-value{font-size:11px;}
+  .know-row{margin-bottom:0.5rem;}
+  .know-btn{padding:7px;}
+  .disclaimer{display:none;}
+}
+
+/* ââ Large screens âââââââââââââââââââââââââ */
+@media (min-width:640px) {
+  #card-wrap{height:400px;}
+  .card-title{font-size:32px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="dashboard.html" class="back-link">&#8592; Subjects</a>
+  <div class="logo">SBAR Brew</div>
+  <div id="score-chip" class="score-chip">0 / 0</div>
+</header>
+
+<main id="main-content">
+
+  <div class="controls-row" id="mode-tabs">
+    <div id="subj-label" class="subj-label"></div>
+    <button class="mode-tab active" onclick="setMode('flip')">Flip</button>
+    <button class="mode-tab" onclick="setMode('quiz')">Quiz</button>
+    <button id="randomize-btn" onclick="toggleRandomize()">Randomize</button>
+  </div>
+
+  <div class="prog-bar"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+
+  <div class="nav-row">
+    <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Prev</button>
+    <span class="card-counter" id="card-counter">1 of â</span>
+    <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+  </div>
+
+  <!-- Flip Mode -->
+  <div id="flip-mode">
+    <div id="card-wrap">
+      <div class="card-inner" id="card-inner">
+
+        <!-- Front -->
+        <div class="card-face card-front" onclick="flipCard()">
+          <div id="front-subj-tag" class="subj-label" style="margin-bottom:10px;"></div>
+          <div class="card-title" id="front-title">â</div>
+          <div class="card-subtitle" id="front-subtitle"></div>
+          <div id="effects-list"></div>
+          <div style="margin-top:auto;">
+            <div class="card-hint">Tap to reveal Â· Swipe to navigate</div>
+          </div>
+        </div>
+
+        <!-- Back -->
+        <div class="card-face card-back" onclick="flipCard()">
+          <div class="back-grid">
+            <div class="back-cell">
+              <div class="cell-label">What it does</div>
+              <div class="cell-value" id="b-does"></div>
+            </div>
+            <div class="back-cell">
+              <div class="cell-label">Why given</div>
+              <div class="cell-value" id="b-why"></div>
+            </div>
+            <div class="back-cell">
+              <div class="cell-label">Watch for</div>
+              <div class="cell-value" id="b-watch"></div>
+            </div>
+            <div class="back-cell">
+              <div class="cell-label">Hold / act if</div>
+              <div class="cell-value" id="b-hold"></div>
+            </div>
+            <div class="back-cell full">
+              <div class="cell-label">Teach the patient</div>
+              <div class="cell-value" id="b-teach"></div>
+              <div id="b-bbw" style="margin-top:4px;"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="know-row">
+      <button class="know-btn green" onclick="markCard(true)">Know it â</button>
+      <button class="know-btn" onclick="markCard(false)">Still learning</button>
+    </div>
+  </div>
+
+  <!-- Quiz Mode -->
+  <div id="quiz-mode" style="display:none;">
+    <div class="quiz-card">
+      <div class="quiz-drug" id="q-drug"></div>
+      <div class="quiz-q" id="q-question"></div>
+      <div class="quiz-opts" id="q-opts"></div>
+      <div id="q-feedback"></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    For educational use only. Always verify independently before clinical application.<br>
+    Content sourced from NLM MedlinePlus Â· FDA DailyMed Â· OpenStax A&P 2e (CC BY 4.0)
+  </div>
+
+</main>
+
+<!-- Upgrade Overlay -->
+<div class="upgrade-overlay" id="upgrade-overlay">
+  <div class="upgrade-modal">
+    <h2>Unlock this subject</h2>
+    <p>3 free cards done. One payment. Lifetime access. Coffee included.</p>
+    <div class="upgrade-sbar">
+      <div class="upgrade-sbar-row"><span>S</span>Situation: You need more cards</div>
+      <div class="upgrade-sbar-row"><span>B</span>Background: Boards are coming</div>
+      <div class="upgrade-sbar-row"><span>A</span>Assessment: $29.99 is nothing</div>
+      <div class="upgrade-sbar-row"><span>R</span>Recommendation: Unlock everything</div>
+    </div>
+    <button class="upgrade-cta" onclick="alert('Payment setup coming soon!')">
+      Unlock all â $29.99 lifetime
+    </button><br>
+    <button class="upgrade-dismiss" onclick="hideUpgrade()">Maybe later</button>
+  </div>
+</div>
+
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/subjects.js"></script>
+<script src="js/cards.js"></script>
+<script>
+async function init() {
+  const user = await requireAuth('login.html')
+  if (!user) return
+
+  const params = new URLSearchParams(window.location.search)
+  const subjectId = params.get('id')
+  const subjectSlug = params.get('subject')
+  if (!subjectId) { window.location.href = 'dashboard.html'; return }
+
+  const subjects = await loadSubjects()
+  const subj = subjects.find(s => s.id === subjectId || s.slug === subjectSlug)
+
+  if (subj) {
+    document.title = `SBAR Brew â ${subj.label}`
+    ;['subj-label', 'front-subj-tag'].forEach(id => {
+      const el = document.getElementById(id)
+      if (el) {
+        el.textContent = subj.label
+        el.style.background = subj.color_bg
+        el.style.color = subj.color_text
+      }
+    })
+  }
+
+  const hasAccess = await hasSubjectAccess(user.id, subjectId)
+  await initStudy(subjectId, user.id, hasAccess)
+}
+
+init()
+</script>
+</body>
+</html>
