@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SBAR Brew â Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--espresso:#120800;--roast:#1E0C00;--dark:#2A1200;--caramel:#C47B2B;--gold:#E8A83E;--cream:#F5EDD6;--steam:#D4C5A9;--muted:#7A5C3A;--border:#3D1A00;--radius:12px;}
+body{font-family:'DM Sans',sans-serif;background:var(--espresso);color:var(--cream);}
+header{background:var(--roast);border-bottom:1px solid var(--border);padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:'Playfair Display',serif;font-size:20px;color:var(--caramel);}
+.logo span{font-style:italic;color:var(--cream);}
+.header-right{display:flex;align-items:center;gap:10px;}
+.user-email{font-size:13px;color:var(--muted);}
+.sign-out-btn{font-size:13px;color:var(--muted);background:none;border:1px solid var(--border);padding:5px 12px;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+main{max-width:960px;margin:0 auto;padding:2rem 1.5rem;}
+.page-title{font-family:'Playfair Display',serif;font-size:28px;color:var(--cream);margin-bottom:4px;}
+.page-sub{font-size:14px;color:var(--muted);margin-bottom:2rem;}
+.upgrade-banner{background:var(--caramel);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:10px;}
+.upgrade-text{font-size:14px;color:var(--espresso);line-height:1.5;}
+.upgrade-text strong{font-weight:500;display:block;margin-bottom:2px;}
+.upgrade-btn{background:var(--espresso);color:var(--caramel);border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.subjects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+.subject-card{background:var(--dark);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;cursor:pointer;text-decoration:none;display:block;transition:transform 0.15s,border-color 0.15s;}
+.subject-card:hover{transform:translateY(-2px);border-color:var(--caramel);}
+.subject-card.inactive{opacity:0.5;cursor:not-allowed;}
+.subj-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;margin-bottom:10px;}
+.subj-name{font-size:16px;font-weight:500;color:var(--cream);margin-bottom:4px;}
+.subj-count{font-size:12px;color:var(--muted);}
+.subj-status{font-size:11px;margin-top:8px;}
+.coming-badge{display:inline-block;padding:2px 8px;background:var(--roast);color:var(--muted);border-radius:4px;font-size:11px;border:1px solid var(--border);}
+.loading{text-align:center;padding:3rem;color:var(--muted);font-size:14px;}
+.disclaimer{font-size:11px;color:var(--muted);text-align:center;margin-top:3rem;line-height:1.6;}
+.disclaimer a{color:var(--muted);}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">SBAR <span>Brew</span></div>
+  <div class="header-right">
+    <span class="user-email" id="user-email"></span>
+    <button class="sign-out-btn" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+<main>
+  <div class="page-title">Choose a subject</div>
+  <div class="page-sub">3 cards free in every subject â upgrade to unlock all</div>
+
+  <div class="upgrade-banner" id="upgrade-banner" style="display:none;">
+    <div class="upgrade-text">
+      <strong>Unlock everything â one time</strong>
+      All access: 6 subjects, all cards, forever. Plus a grande on us.
+    </div>
+    <button class="upgrade-btn" onclick="alert('Payment setup coming soon â check back shortly!')">
+      See pricing â from $7.99
+    </button>
+  </div>
+
+  <div id="subjects-grid" class="subjects-grid">
+    <div class="loading">Loading subjects...</div>
+  </div>
+
+  <div class="disclaimer">
+    Content sourced from FDA DailyMed Â· OpenStax A&P 2e (CC BY 4.0) Â· NLM MedlinePlus<br>
+    For educational use only â verify independently before clinical application.<br>
+    <a href="terms.html">Terms of Use</a>
+  </div>
+</main>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/subjects.js"></script>
+<script>
+async function init(){
+  const user = await requireAuth('login.html')
+  if(!user) return
+  document.getElementById('user-email').textContent = user.email
+
+  const license = await getLicense(user.id)
+  if(!license) document.getElementById('upgrade-banner').style.display='flex'
+
+  const subjects = await loadSubjects()
+  renderSubjects(subjects, license)
+}
+
+function renderSubjects(subjects, license){
+  const grid = document.getElementById('subjects-grid')
+  const hasAll = license?.license_type === 'all_access'
+
+  grid.innerHTML = subjects.map(s => {
+    const noCards = s.card_count === 0
+    const hasAccess = hasAll || (license?.subject_ids?.includes(s.id))
+    const href = noCards ? '#' : `study.html?subject=${s.slug}&id=${s.id}`
+    const onclick = noCards ? 'return false' : ''
+
+    return `<a class="subject-card${noCards?' inactive':''}" href="${href}" ${onclick?`onclick="${onclick}"`:''}>
+      <div class="subj-tag" style="background:${s.color_bg};color:${s.color_text};">${s.label}</div>
+      <div class="subj-name">${s.label}</div>
+      <div class="subj-count">${s.card_count > 0 ? s.card_count+' cards' : 'Coming soon'}</div>
+      <div class="subj-status">
+        ${noCards
+          ? '<span class="coming-badge">Coming soon</span>'
+          : hasAccess
+            ? '<span style="color:#6EE7B7;font-size:11px;">Full access</span>'
+            : '<span style="color:var(--muted);font-size:11px;">3 cards free</span>'
+        }
+      </div>
+    </a>`
+  }).join('')
+}
+
+init()
+</script>
+</body>
+</html>
